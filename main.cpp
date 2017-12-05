@@ -1,6 +1,7 @@
 // g++ main.cpp -lzip -lSDL -lSDL_mixer -o Tower && ./Tower
 
 #include <zip.h>	// requires libzip
+#include <SDL/SDL.h>	// Mix_GetError, SDL_Delay
 #include <SDL/SDL_mixer.h>
 
 #include <iostream>
@@ -11,7 +12,7 @@ char* PlayMIDI_FromZIP_File(const char* zipfile, const char* midifile)
 {
 	// Open the ZIP archive
 	int err = 0;
-	zip *z = zip_open(zipfile, 0, &err);
+	zip* z = zip_open(zipfile, 0, &err);
 
 	// Search for the file of given name
 	struct zip_stat st;
@@ -19,7 +20,7 @@ char* PlayMIDI_FromZIP_File(const char* zipfile, const char* midifile)
 	zip_stat(z, midifile, 0, &st);
 
 	// Alloc memory for its uncompressed contents
-	char *contents = new char[st.size];
+	char* contents = new char[st.size];
 
 	// Read the compressed file
 	zip_file *f = zip_fopen(z, midifile, 0);
@@ -46,7 +47,9 @@ char* PlayMIDI_FromZIP_File(const char* zipfile, const char* midifile)
 		// Display and error if there is a problem
 		if(!music)
 		{
-			cout << Mix_GetError() << endl;
+			cout << "Failed to load MIDI file " << midifile << " from " << zipfile << "." << endl;
+			delete[] contents;
+			contents = NULL;
 		}
 		else if (!Mix_PlayingMusic())
 		{
@@ -81,9 +84,12 @@ int main()
 	{
 		char* mem_midi = PlayMIDI_FromZIP_File("data.zip", "07.MID");
 
-		system("sleep 60");
+		if (mem_midi != NULL)
+		{
+			SDL_Delay(60 * 1000);
+			Mix_HaltMusic();
+		}
 
-		Mix_HaltMusic();
 		if (mem_midi != NULL)
 		{
 			delete[] mem_midi;
