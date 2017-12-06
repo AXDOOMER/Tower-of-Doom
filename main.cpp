@@ -45,25 +45,18 @@ char* PlayMIDI_FromZIP_File(const char* zipfile, const char* midifile)
 		SDL_RWclose(rwops);
 
 		// Display and error if there is a problem
-		if(!music)
+		if (!music)
 		{
 			cout << "Failed to load MIDI file " << midifile << " from " << zipfile << "." << endl;
-			delete[] contents;
-			contents = NULL;
 		}
 		else if (!Mix_PlayingMusic())
 		{
 			// Play the music
-			Mix_PlayMusic(music, -1);
+			Mix_PlayMusic(music, 1);
 		}
 	}
-	else
-	{
-		delete[] contents;
-		contents = NULL;
-	}
 
-	return contents; // MIDI memory space to be deleted
+	return contents;	// Allocated memory that contains the MIDI
 }
 
 int main()
@@ -86,12 +79,15 @@ int main()
 
 		if (mem_midi != NULL)
 		{
-			SDL_Delay(60 * 1000);
-			Mix_HaltMusic();
-		}
+			int s = 0;
+			while (Mix_PlayingMusic())
+			{
+				SDL_Delay(1000);
+				s++;
+			}
 
-		if (mem_midi != NULL)
-		{
+			cout << "Music was done playing after " << s << " seconds." << endl;
+
 			delete[] mem_midi;
 		}
 	}
